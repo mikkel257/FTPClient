@@ -1,9 +1,17 @@
+import FTPClient.ConnectionException;
 
 public class Main {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		FTPClient client = new FTPClient();
+		try 
+		{
+		client.connect();
+		}
+		catch (ConnectionException e)
+		{
+			System.out.println(e.getMessage());
+		}
 	}
 
 }
