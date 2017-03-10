@@ -1,4 +1,7 @@
 package ftpClientPackage;
+
+import ftpClientPackage.FTPClient.ConnectionException;
+
 public class Main {
 
 	public static void main(String[] args) {
@@ -11,6 +14,8 @@ public class Main {
 		{
 			System.out.println(e.getMessage());
 		}
+		
+		System.out.println("hej");
 	}
 
 }
