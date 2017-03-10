@@ -65,6 +65,8 @@ public class FTPClient {
 			throw new ConnectionException("Some sort of IOException occured when trying to get the sockets input stream" , e);
 		}
 		
+		
+		//TODO Remember to check for 220. Make some kind of error checking.
 	}
 	
 	
