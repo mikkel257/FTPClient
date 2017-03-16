@@ -69,13 +69,16 @@ public class FTPClient {
 		//TODO Remember to check for 220. Make some kind of error checking.
 	}
 	
+	//___________________________________________________________________________________________
+	// Secondary methods
+	//___________________________________________________________________________________________
 	
 	/**
 	 * Returns an array of user input.
 	 * @param messagesToUser The messages that specifies what user input is needed.
 	 * @return A String array of user inputs.
 	 */
-	public static String[] getUserInput(String[] messagesToUser)
+	public String[] getUserInput(String[] messagesToUser)
 	{
 		Scanner keyboard = new Scanner(System.in);
 		String[] userInput = new String[messagesToUser.length];
@@ -90,9 +93,32 @@ public class FTPClient {
 	}
 	
 	/**
+	 * Returns a string containing the next server response.
+	 * @return The next message from the server.
+	 * @throws ConnectionException If something went wrong while trying to retrieve the next server response.
+	 */
+	public String getNextServerRespons() throws ConnectionException {
+		try {
+			if (inFromServer.ready()) 
+			{
+				return inFromServer.readLine();
+			}
+		} 
+		catch (IOException e) 
+		{
+			throw new ConnectionException("Some sort of IOException occured which include that the connection to the server may have been lost",
+					e);
+		}
+		
+		throw new ConnectionException("The server respons could not be retrieved.");
+	}
+	
+	
+	/**
 	 * 
 	 * @author Mikkel Holmbo Lund - Denmark Technical University
 	 * This exception class is used to in the connect method to show and display the connection problems that might be.
+	 * This class is an inner class of FTPClient.
 	 */
 	public class ConnectionException extends Exception {
 
@@ -120,4 +146,5 @@ public class FTPClient {
 			super(msg);
 		}
 	}
+	
 }
