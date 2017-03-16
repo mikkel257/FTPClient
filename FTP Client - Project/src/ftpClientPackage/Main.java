@@ -8,14 +8,14 @@ public class Main {
 		FTPClient client = new FTPClient();
 		try 
 		{
-		client.connect();
+			client.connect();
 		}
 		catch (ConnectionException e)
 		{
 			System.out.println(e.getMessage());
 		}
 		
-		System.out.println("hej");
 	}
 
 }
+// 130.226.195.126", 21

@@ -18,7 +18,7 @@ public class FTPClient {
 	 * Connects the FTP client to the FTP server.
 	 * @throws ConnectionException If something went wrong when trying to connect to the FTP server.
 	 */
-	public void connect() throws ConnectionException
+	public boolean connect() throws ConnectionException
 	{
 		//The text which contains which information is required from the user to connect to the FTP server.
 		String[] messagesToUser = {"Please enter the IP of the FTP-server that you wish to connect to: ",
@@ -65,8 +65,20 @@ public class FTPClient {
 			throw new ConnectionException("Some sort of IOException occured when trying to get the sockets input stream" , e);
 		}
 		
-		
-		//TODO Remember to check for 220. Make some kind of error checking.
+		if (isConnected())
+		{
+			String line = getNextServerMessage();
+			if (isExpectedAnswer(getReturnCode(line), "220"))
+			{
+				System.out.println(line);
+			}
+			return true;
+		}
+		else
+		{
+			System.out.println("Could not connect to the FTP server");
+			return false;
+		}
 	}
 	
 	//___________________________________________________________________________________________
@@ -78,7 +90,7 @@ public class FTPClient {
 	 * @param messagesToUser The messages that specifies what user input is needed.
 	 * @return A String array of user inputs.
 	 */
-	public String[] getUserInput(String[] messagesToUser)
+	private String[] getUserInput(String[] messagesToUser)
 	{
 		Scanner keyboard = new Scanner(System.in);
 		String[] userInput = new String[messagesToUser.length];
@@ -97,22 +109,44 @@ public class FTPClient {
 	 * @return The next message from the server.
 	 * @throws ConnectionException If something went wrong while trying to retrieve the next server response.
 	 */
-	public String getNextServerRespons() throws ConnectionException {
-		try {
-			if (inFromServer.ready()) 
-			{
-				return inFromServer.readLine();
-			}
+	private String getNextServerMessage() throws ConnectionException {
+		try 
+		{
+			return inFromServer.readLine();
 		} 
 		catch (IOException e) 
 		{
 			throw new ConnectionException("Some sort of IOException occured which include that the connection to the server may have been lost",
 					e);
 		}
-		
-		throw new ConnectionException("The server respons could not be retrieved.");
 	}
 	
+	/**
+	 * Returns a string containing the next return code from the server.
+	 * @return The next return code from the server.
+	 * @throws ConnectionException If something went wrong while trying to retrieve the next server return code.
+	 */
+	private String getReturnCode(String s) throws ConnectionException
+	{
+		return s.substring(0,3);
+	}
+	
+	private boolean isConnected()
+	{
+		return clientSocket.isConnected();
+	}
+	
+	private boolean isExpectedAnswer(String answer, String expected)
+	{
+		if (answer.equals(expected))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 	
 	/**
 	 * 
