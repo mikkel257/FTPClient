@@ -10,6 +10,7 @@ public class Main {
 		try 
 		{
 			client.connect();
+			client.login();
 		}
 		catch (ConnectionException e)
 		{
@@ -19,4 +20,4 @@ public class Main {
 	}
 
 }
-// 130.226.195.126", 21
+// 130.226.195.126", 21, studentNumber@student.dtu.dk

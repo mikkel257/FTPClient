@@ -10,9 +10,10 @@ import java.util.Scanner;
 public class FTPClient {
 
 	//Instance variables
-	Socket clientSocket;
-	DataOutputStream outToServer;
-	BufferedReader inFromServer;
+	private Socket clientSocket;
+	private DataOutputStream outToServer;
+	private BufferedReader inFromServer;
+	private Scanner scanner;
 	
 	/**
 	 * Connects the FTP client to the FTP server.
@@ -59,11 +60,11 @@ public class FTPClient {
 		//If connected print return code and a message.
 		if (isConnected())
 		{
-			System.out.println("\nYou succesfully connected to FTP-server " + connectInformation[0] + " on port " + connectInformation[1] + "\n");
+			System.out.println("You have succesfully connected to FTP-server on IP: " + connectInformation[0] + " on port: " + connectInformation[1] + "\n");
 			String line = getNextServerMessage();
 			if (isExpectedAnswer(getReturnCode(line), "220"))
 			{
-				System.out.println( getReturnCode(line) + " - Service ready for new user.");
+				System.out.println( getReturnCode(line) + " Service ready for new user. \n");
 			}
 			return true;
 		}
@@ -75,35 +76,74 @@ public class FTPClient {
 	}
 	
 	/**
-	 * Sends a command to the FTP server.
-	 * @param command The command to be send.
+	 * Login to the connected FTP server.
+	 * @return true if logged in, false otherwise.
 	 */
-	public void sendCommand(String command)
+	public boolean login()
 	{
+		boolean isLoggedIn = false;
+		String username = null;
+		String password = null;
+		sendInitialCommand();
 		try 
-		{
-			if (isConnected())
+		{	
+			//Expected message first time: "530 Please login with USER and PASS."
+			//Expected message afterwards: "530 Login incorrect."
+			String message = getNextServerMessage();
+			
+			if (isExpectedAnswer(getReturnCode(message), "530"))
 			{
-			outToServer.writeBytes(command);
+				System.out.println(message);
+				username = getUserInput("Please Enter your username: ");
+				sendCommand("USER " + username);
+				System.out.println();
+				message = getNextServerMessage();
+				
+				// Expected message "331 Please specify password."
+				if (isExpectedAnswer(getReturnCode(message), "331"))
+				{
+					System.out.println(message);
+					password = getUserInput("Please Enter your password: ");
+					sendCommand("PASS " + password);
+					System.out.println();
+					message = getNextServerMessage();
+					
+					// Expected message "230 Login succesful."
+					if (isExpectedAnswer(getReturnCode(message), "230"))
+					{
+						System.out.println(message);
+						isLoggedIn = true;
+					}
+					else
+					{
+						System.out.println("[ERROR] Wrong password. Please try to login again.\n");
+						isLoggedIn = login();
+					}
+				}
+				else
+				{
+					System.out.println("[ERROR] No such user available.");
+				}
 			}
 			else
 			{
-				System.out.println("You may have lost the connection to the FTP server.");
+				System.out.println("[ERROR] Failed to login. Closing the connection.");
 			}
 		} 
-		catch (IOException e) 
+		catch (ConnectionException e) 
 		{
-			e.printStackTrace();
-			System.out.println("Some sort of IOException occured when trying to send a command. Closing the client connection");
-			try 
-			{
-				clientSocket.close();
-			} 
-			catch (IOException e1) {
-				
-				System.out.println("Could not close the socket.");
-			}
+			System.out.println(e);
 		}
+		return isLoggedIn;
+	}
+	
+	/**
+	 * Sends initial command. This is needed to be told that you need to login with USER and PASS.
+	 */
+	public void sendInitialCommand()
+	{
+		//Sends some initial command to the FTP server.
+		sendCommand("Hello");
 	}
 	
 	//___________________________________________________________________________________________
@@ -117,16 +157,28 @@ public class FTPClient {
 	 */
 	private String[] getUserInput(String[] messagesToUser)
 	{
-		Scanner keyboard = new Scanner(System.in);
 		String[] userInput = new String[messagesToUser.length];
-		
+		scanner = new Scanner(System.in);
 		for (int messageNr = 0; messageNr < messagesToUser.length; messageNr++)
 		{
-			System.out.println(messagesToUser[messageNr]);
-			userInput[messageNr] = keyboard.nextLine();
+			System.out.print(messagesToUser[messageNr]);
+			userInput[messageNr] = scanner.nextLine();
+			System.out.println();
+			
 		}
-		keyboard.close();
 		return userInput;
+	}
+	
+	/**
+	 * Returns a string with the user input
+	 * @param messageToUser The message that specifies what user input is needed.
+	 * @return A string containing the user input.
+	 */
+	private String getUserInput(String messageToUser)
+	{
+		System.out.print(messageToUser);
+		scanner = new Scanner(System.in);
+		return scanner.nextLine();
 	}
 	
 	/**
@@ -184,6 +236,38 @@ public class FTPClient {
 	}
 	
 	/**
+	 * Sends a command to the FTP server, remember to add \n at the end of the command.
+	 * @param command The command to be send.
+	 */
+	private void sendCommand(String command)
+	{
+		try 
+		{
+			if (isConnected())
+			{
+			outToServer.writeBytes(command + "\n");
+			}
+			else
+			{
+				System.out.println("You may have lost the connection to the FTP server.");
+			}
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+			System.out.println("Some sort of IOException occured when trying to send a command. Closing the client connection");
+			try 
+			{
+				clientSocket.close();
+			} 
+			catch (IOException e1) {
+				
+				System.out.println("Could not close the socket.");
+			}
+		}
+	}
+	
+	/**
 	 * 
 	 * @author Mikkel Holmbo Lund - Denmark Technical University
 	 * This exception class is used to in the connect method to show and display the connection problems that might be.
@@ -213,6 +297,12 @@ public class FTPClient {
 		 */
 		public ConnectionException(String msg) {
 			super(msg);
+		}
+		
+		@Override
+		public String toString()
+		{
+			return "ConnectionException: " + super.getMessage();
 		}
 	}
 	
