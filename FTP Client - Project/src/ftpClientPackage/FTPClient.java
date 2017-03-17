@@ -74,6 +74,38 @@ public class FTPClient {
 		}
 	}
 	
+	/**
+	 * Sends a command to the FTP server.
+	 * @param command The command to be send.
+	 */
+	public void sendCommand(String command)
+	{
+		try 
+		{
+			if (isConnected())
+			{
+			outToServer.writeBytes(command);
+			}
+			else
+			{
+				System.out.println("You may have lost the connection to the FTP server.");
+			}
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+			System.out.println("Some sort of IOException occured when trying to send a command. Closing the client connection");
+			try 
+			{
+				clientSocket.close();
+			} 
+			catch (IOException e1) {
+				
+				System.out.println("Could not close the socket.");
+			}
+		}
+	}
+	
 	//___________________________________________________________________________________________
 	// Secondary methods
 	//___________________________________________________________________________________________
@@ -183,5 +215,6 @@ public class FTPClient {
 			super(msg);
 		}
 	}
+	
 	
 }
