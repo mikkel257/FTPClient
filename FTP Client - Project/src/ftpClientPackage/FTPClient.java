@@ -45,32 +45,25 @@ public class FTPClient {
 			throw new ConnectionException("Some sort of IOException occured when trying to create the socket.", e);
 		}
 
-		// Trying to get the newly created sockets output stream.
+		//Trying to retrieve the output and input streams of the newly created socket.
 		try
 		{
 		outToServer = new DataOutputStream(clientSocket.getOutputStream());
-		}
-		catch (IOException e)
-		{
-			throw new ConnectionException("Some sort of IOException occured when trying to get the sockets output stream", e);
-		}
-		
-		// Trying to get the newly created sockets input stream.
-		try
-		{
 		inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		}
 		catch (IOException e)
 		{
-			throw new ConnectionException("Some sort of IOException occured when trying to get the sockets input stream" , e);
+			throw new ConnectionException("Some sort of IOException occured when trying to get the sockets output stream or input stream", e);
 		}
 		
+		//If connected print return code and a message.
 		if (isConnected())
 		{
+			System.out.println("\nYou succesfully connected to FTP-server " + connectInformation[0] + " on port " + connectInformation[1] + "\n");
 			String line = getNextServerMessage();
 			if (isExpectedAnswer(getReturnCode(line), "220"))
 			{
-				System.out.println(line);
+				System.out.println( getReturnCode(line) + " - Service ready for new user.");
 			}
 			return true;
 		}
@@ -131,11 +124,21 @@ public class FTPClient {
 		return s.substring(0,3);
 	}
 	
+	/**
+	 * Returns true if the socket is connected.
+	 * @return true if connected false otherwise.
+	 */
 	private boolean isConnected()
 	{
 		return clientSocket.isConnected();
 	}
 	
+	/**
+	 * Returns true if the answer is the expected otherwise false.
+	 * @param answer The answer.
+	 * @param expected The expected answer.
+	 * @return True if the answer is equal to the expected answer, false otherwise.
+	 */
 	private boolean isExpectedAnswer(String answer, String expected)
 	{
 		if (answer.equals(expected))
